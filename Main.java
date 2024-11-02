@@ -1,30 +1,16 @@
 package armadaCFG;
 
 import java.util.Scanner;
-import java.util.regex.*;
 
 public class Main {
 
-    // Regex for object creation
+    // Regex for object creation and closing
     private static final String OBJECT_CREATION = "^create\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*$";
     private static final String OBJECT_CLOSING = "^\\s*}\\s*$";
-
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Enter code (press Enter on a blank line to finish):");
-
-        StringBuilder input = new StringBuilder();
-        while (true) {
-            String line = sc.nextLine().trim();
-            if (line.isEmpty()) {
-                break;
-            }
-            input.append(line).append("\n");
-        }
-
-        checkSyntax(input.toString());
-        sc.close();
-    }
+    
+    // Regex for class declaration and closing
+    private static final String CLASS_DECLARATION = "^class\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*$";
+    private static final String CLASS_CLOSING = "^\\s*}\\s*$";
 
     // Regex for status declarations and assignments
     private static final String STATUS_DECLARATION = "^status\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*;$";
@@ -49,27 +35,51 @@ public class Main {
     private static final String COORDS_ASSIGNMENT = "^[a-zA-Z_][a-zA-Z0-9_]*\\s*:=\\s*\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\)\\s*;$";
     private static final String COORDS_DECLARATION_ASSIGNMENT = "^coords\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:=\\s*\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\)\\s*;$";
 
+    // Regex for object instantiation
+    private static final String OBJECT_INSTANTIATION = "^\\s*[A-Za-z_][A-Za-z0-9_]*\\s+[A-Za-z_][A-Za-z0-9_]*\\s*:=\\s*new\\s+[A-Za-z_][A-Za-z0-9_]*\\s*;$";
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter code (press Enter on a blank line to finish):");
+
+        StringBuilder input = new StringBuilder();
+        while (true) {
+            String line = sc.nextLine().trim();
+            if (line.isEmpty()) {
+                break;
+            }
+            input.append(line).append("\n");
+        }
+
+        checkSyntax(input.toString());
+        sc.close();
+    }
+
     // Method to check the syntax
     public static void checkSyntax(String code) {
         String[] lines = code.split("\\n");
         boolean inObject = false;
+        boolean inClass = false;
 
         for (String line : lines) {
             line = line.trim();
 
             // Check for object creation
-            if (!inObject) {
+            if (!inObject && !inClass) {
                 if (line.matches(OBJECT_CREATION)) {
                     System.out.println("Valid object creation: " + line);
-                    inObject = true;
+                    inObject = true; // Entering object definition
+                } else if (line.matches(CLASS_DECLARATION)) {
+                    System.out.println("Valid class declaration: " + line);
+                    inClass = true; // Entering class definition
                 } else {
-                    System.out.println("Error: Invalid object declaration.");
+                    System.out.println("Error: Invalid object declaration or class declaration.");
                 }
-            } else {
-                // Check field declarations or object closing
+            } else if (inObject) {
+                // Inside object definition
                 if (line.matches(OBJECT_CLOSING)) {
                     System.out.println("Valid object closing.");
-                    inObject = false;
+                    inObject = false; // Ending object definition
                 } else if (line.matches(STATUS_DECLARATION)) {
                     System.out.println("Valid status declaration.");
                 } else if (line.matches(STATUS_ASSIGNMENT)) {
@@ -103,12 +113,25 @@ public class Main {
                 } else {
                     System.out.println("Error: Invalid syntax -> " + line);
                 }
+            } else if (inClass) {
+                // Inside class definition
+                if (line.matches(CLASS_CLOSING)) {
+                    System.out.println("Valid class closing.");
+                    inClass = false; // Ending class definition
+                } else if (line.matches(OBJECT_INSTANTIATION)) {
+                    System.out.println("Valid object instantiation: " + line);
+                } else {
+                    System.out.println("Error: Invalid syntax in class -> " + line);
+                }
             }
         }
 
-        // Check if we ended without closing the object
+        // Check if we ended without closing the object or class
         if (inObject) {
             System.out.println("Error: Missing closing brace for object.");
+        }
+        if (inClass) {
+            System.out.println("Error: Missing closing brace for class.");
         }
     }
 }

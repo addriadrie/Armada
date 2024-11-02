@@ -1,13 +1,18 @@
 package armadaCFG;
 
-import java.util.Scanner;
-import java.util.regex.*;
-
 // Class to represent a Status object
 class Status {
     private String flightStatus;
 
     public Status(String flightStatus) {
+        this.flightStatus = flightStatus;
+    }
+
+    public String getFlightStatus() {
+        return flightStatus;
+    }
+
+    public void setFlightStatus(String flightStatus) {
         this.flightStatus = flightStatus;
     }
 
@@ -17,7 +22,7 @@ class Status {
     }
 }
 
-// Class to represent a coords object
+// Class to represent a Coords object
 class Coords {
     private double latitude;
     private double longitude;
@@ -26,6 +31,30 @@ class Coords {
     public Coords(double latitude, double longitude, long altitude) {
         this.latitude = latitude;
         this.longitude = longitude;
+        this.altitude = altitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public long getAltitude() {
+        return altitude;
+    }
+
+    public void setAltitude(long altitude) {
         this.altitude = altitude;
     }
 
@@ -48,6 +77,46 @@ class Airplane {
         this.name = name;
         this.location = location;
         this.flightStatus = flightStatus;
+        this.speed = speed;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Coords getLocation() {
+        return location;
+    }
+
+    public void setLocation(Coords location) {
+        this.location = location;
+    }
+
+    public Status getFlightStatus() {
+        return flightStatus;
+    }
+
+    public void setFlightStatus(Status flightStatus) {
+        this.flightStatus = flightStatus;
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
         this.speed = speed;
     }
 
