@@ -5,6 +5,10 @@ import java.util.regex.*;
 
 public class Main {
 
+    // Regex for object creation
+    private static final String OBJECT_CREATION = "^create\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*$";
+    private static final String OBJECT_CLOSING = "^\\s*}\\s*$";
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter code (press Enter on a blank line to finish):");
@@ -48,111 +52,63 @@ public class Main {
     // Method to check the syntax
     public static void checkSyntax(String code) {
         String[] lines = code.split("\\n");
+        boolean inObject = false;
 
         for (String line : lines) {
-            if (line.matches(STATUS_DECLARATION)) {
-                System.out.println("Valid status declaration.");
-            } else if (line.matches(STATUS_ASSIGNMENT)) {
-                System.out.println("Valid status assignment.");
-                Pattern pattern = Pattern.compile(STATUS_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    String statusValue = matcher.group(1);
-                    Status status = new Status(statusValue);
-                    System.out.println("Assigned status value: " + status);
-                }
-            } else if (line.matches(STATUS_DECLARATION_ASSIGNMENT)) {
-                System.out.println("Valid status declaration and assignment.");
-                Pattern pattern = Pattern.compile(STATUS_DECLARATION_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    String statusValue = matcher.group(1);
-                    Status status = new Status(statusValue);
-                    System.out.println("Declared and assigned status value: " + status);
-                }
-            } else if (line.matches(DOUBLE_DECLARATION)) {
-                System.out.println("Valid double declaration.");
-            } else if (line.matches(DOUBLE_ASSIGNMENT)) {
-                System.out.println("Valid double assignment.");
-                Pattern pattern = Pattern.compile(DOUBLE_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    double doubleValue = Double.parseDouble(matcher.group(1));
-                    System.out.println("Assigned double value: " + doubleValue);
-                }
-            } else if (line.matches(DOUBLE_DECLARATION_ASSIGNMENT)) {
-                System.out.println("Valid double declaration and assignment.");
-                Pattern pattern = Pattern.compile(DOUBLE_DECLARATION_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    double doubleValue = Double.parseDouble(matcher.group(1));
-                    System.out.println("Declared and assigned double value: " + doubleValue);
-                }
-            } else if (line.matches(INT_DECLARATION)) {
-                System.out.println("Valid int declaration.");
-            } else if (line.matches(INT_ASSIGNMENT)) {
-                System.out.println("Valid int assignment.");
-                Pattern pattern = Pattern.compile(INT_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    int intValue = Integer.parseInt(matcher.group(1));
-                    System.out.println("Assigned int value: " + intValue);
-                }
-            } else if (line.matches(INT_DECLARATION_ASSIGNMENT)) {
-                System.out.println("Valid int declaration and assignment.");
-                Pattern pattern = Pattern.compile(INT_DECLARATION_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    int intValue = Integer.parseInt(matcher.group(1));
-                    System.out.println("Declared and assigned int value: " + intValue);
-                }
-            } else if (line.matches(STRING_DECLARATION)) {
-                System.out.println("Valid string declaration.");
-            } else if (line.matches(STRING_ASSIGNMENT)) {
-                System.out.println("Valid string assignment.");
-                Pattern pattern = Pattern.compile(STRING_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    String stringValue = matcher.group(1);
-                    System.out.println("Assigned string value: " + stringValue);
-                }
-            } else if (line.matches(STRING_DECLARATION_ASSIGNMENT)) {
-                System.out.println("Valid string declaration and assignment.");
-                Pattern pattern = Pattern.compile(STRING_DECLARATION_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    String stringValue = matcher.group(1);
-                    System.out.println("Declared and assigned string value: " + stringValue);
-                }
-            } else if (line.matches(COORDS_DECLARATION)) {
-                System.out.println("Valid coords declaration.");
-            } else if (line.matches(COORDS_ASSIGNMENT)) {
-                System.out.println("Valid coords assignment.");
-                Pattern pattern = Pattern.compile(COORDS_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    double lat = Double.parseDouble(matcher.group(1));
-                    double longi = Double.parseDouble(matcher.group(2));
-                    long alt = Long.parseLong(matcher.group(3));
-                    coords coords = new coords(lat, longi, alt);
-                    System.out.println("Assigned coords value: " + coords);
-                }
-            } else if (line.matches(COORDS_DECLARATION_ASSIGNMENT)) {
-                System.out.println("Valid coords declaration and assignment.");
-                Pattern pattern = Pattern.compile(COORDS_DECLARATION_ASSIGNMENT);
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    double lat = Double.parseDouble(matcher.group(1));
-                    double longi = Double.parseDouble(matcher.group(2));
-                    long alt = Long.parseLong(matcher.group(3));
-                    coords coords = new coords(lat, longi, alt);
-                    System.out.println("Declared and assigned coords value: " + coords);
+            line = line.trim();
+
+            // Check for object creation
+            if (!inObject) {
+                if (line.matches(OBJECT_CREATION)) {
+                    System.out.println("Valid object creation: " + line);
+                    inObject = true;
+                } else {
+                    System.out.println("Error: Invalid object declaration.");
                 }
             } else {
-                System.out.println("Error: Invalid syntax -> " + line);
+                // Check field declarations or object closing
+                if (line.matches(OBJECT_CLOSING)) {
+                    System.out.println("Valid object closing.");
+                    inObject = false;
+                } else if (line.matches(STATUS_DECLARATION)) {
+                    System.out.println("Valid status declaration.");
+                } else if (line.matches(STATUS_ASSIGNMENT)) {
+                    System.out.println("Valid status assignment.");
+                } else if (line.matches(STATUS_DECLARATION_ASSIGNMENT)) {
+                    System.out.println("Valid status declaration and assignment.");
+                } else if (line.matches(DOUBLE_DECLARATION)) {
+                    System.out.println("Valid double declaration.");
+                } else if (line.matches(DOUBLE_ASSIGNMENT)) {
+                    System.out.println("Valid double assignment.");
+                } else if (line.matches(DOUBLE_DECLARATION_ASSIGNMENT)) {
+                    System.out.println("Valid double declaration and assignment.");
+                } else if (line.matches(INT_DECLARATION)) {
+                    System.out.println("Valid int declaration.");
+                } else if (line.matches(INT_ASSIGNMENT)) {
+                    System.out.println("Valid int assignment.");
+                } else if (line.matches(INT_DECLARATION_ASSIGNMENT)) {
+                    System.out.println("Valid int declaration and assignment.");
+                } else if (line.matches(STRING_DECLARATION)) {
+                    System.out.println("Valid string declaration.");
+                } else if (line.matches(STRING_ASSIGNMENT)) {
+                    System.out.println("Valid string assignment.");
+                } else if (line.matches(STRING_DECLARATION_ASSIGNMENT)) {
+                    System.out.println("Valid string declaration and assignment.");
+                } else if (line.matches(COORDS_DECLARATION)) {
+                    System.out.println("Valid coords declaration.");
+                } else if (line.matches(COORDS_ASSIGNMENT)) {
+                    System.out.println("Valid coords assignment.");
+                } else if (line.matches(COORDS_DECLARATION_ASSIGNMENT)) {
+                    System.out.println("Valid coords declaration and assignment.");
+                } else {
+                    System.out.println("Error: Invalid syntax -> " + line);
+                }
             }
+        }
+
+        // Check if we ended without closing the object
+        if (inObject) {
+            System.out.println("Error: Missing closing brace for object.");
         }
     }
 }
-
-
