@@ -86,7 +86,7 @@ public class Main {
 
             // Store coords in the map
             coordsMap.put(identifier, new Coords(latitude, longitude, altitude));
-            System.out.println(coordsMap.get(identifier));
+            System.out.println(identifier + " of type coordinates is set to " + coordsMap.get(identifier));
         } else {
             System.out.println("Error: Invalid coords declaration.");
         }
@@ -103,7 +103,7 @@ public class Main {
 
             // Store result in the double map
             doubleMap.put(identifier, result);
-            System.out.println("Stored double value: " + identifier + " = " + result);
+            System.out.println(identifier + " is equal to " + result);
         } else {
             System.out.println("Error: Invalid double syntax.");
         }
@@ -150,11 +150,11 @@ public class Main {
 
             // Check if printing a variable (coords, double, or status)
             if (coordsMap.containsKey(expression)) {
-                System.out.println("Coords value for " + expression + ": " + coordsMap.get(expression));
+                System.out.println(coordsMap.get(expression));
             } else if (doubleMap.containsKey(expression)) {
-                System.out.println("Double value for " + expression + ": " + doubleMap.get(expression));
+                System.out.println(doubleMap.get(expression));
             } else if (statusMap.containsKey(expression)) {
-                System.out.println("Status value for " + expression + ": " + statusMap.get(expression));
+                System.out.println(statusMap.get(expression));
             } else if (expression.startsWith("\"") && expression.endsWith("\"")) {
                 // If it's a string literal, print the string without quotes
                 System.out.println(expression.substring(1, expression.length() - 1));
@@ -198,6 +198,6 @@ class Coords {
 
     @Override
     public String toString() {
-        return "Coordinates(" + "latitude = " + latitude + ", longitude = " + longitude + ", altitude = " + altitude + ')';
+        return "(" + "latitude = " + latitude + ", longitude = " + longitude + ", altitude = " + altitude + ')';
     }
 }
