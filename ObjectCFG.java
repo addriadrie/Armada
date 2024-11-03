@@ -20,15 +20,21 @@ public class ObjectCFG {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter code (press Enter on a blank line to finish):");
-
-        StringBuilder input = new StringBuilder();
+        StringBuilder inputBuilder = new StringBuilder();
+        
+        System.out.println("Enter your code (type 'END' on a new line to finish):");
+        
+        // Read lines until 'END' is entered
         while (true) {
-            String line = sc.nextLine().trim();
-            if (line.isEmpty()) break;
-            input.append(line).append("\n");
+            String line = sc.nextLine();
+            if (line.equalsIgnoreCase("END")) {
+                break;
+            }
+            inputBuilder.append(line).append("\n");
         }
-        processInput(input.toString());
+        
+        String input = inputBuilder.toString();
+        processInput(input);
     }
 
     public static void processInput(String code) {
@@ -63,7 +69,7 @@ public class ObjectCFG {
         String fieldName = parts[1].replace(";", "");
 
         objectMap.get(currentObjectName).addField(fieldName, null);
-        System.out.println("Field added: " + fieldName + " of type " + fieldType);
+        System.out.println("Field added: " + fieldName + " of type " + fieldType + ".");
     }
 
     private static void handleObjectClose() {
@@ -172,12 +178,12 @@ public class ObjectCFG {
     }
 }
 
-class Coords {
+class CoordsObj {
     private double latitude;
     private double longitude;
     private long altitude;
 
-    public Coords(double latitude, double longitude, long altitude) {
+    public CoordsObj(double latitude, double longitude, long altitude) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.altitude = altitude;
