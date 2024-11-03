@@ -4,18 +4,15 @@ import java.util.regex.*;
 
 public class Main {
 
-    // Data structures to store objects and fields
-    private static Map<String, Map<String, Object>> objectMap = new HashMap<>();
-    private static Map<String, Double> doubleMap = new HashMap<>();
-    private static Map<String, Coords> coordsMap = new HashMap<>();
-
-    // Regex patterns for different types
+    private static Map<String, CustomObject> objectMap = new HashMap<>();
+    private static Map<String, CustomObject> objectInstanceMap = new HashMap<>();
     private static final String OBJECT_CREATION = "^create\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*$";
     private static final String OBJECT_FIELD = "^(coords|double)\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*;$";
     private static final String OBJECT_CLOSE = "^}\\s*$";
-
-    private static final String COORDS_GRAMMAR = "coords\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:=\\s*\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\);";
-    private static final String DOUBLE_GRAMMAR = "^double\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:=\\s*Mach\\(([-+]?\\d*\\.?\\d+),\\s*([-+]?\\d*\\.?\\d+)\\);$";
+    private static final String OBJECT_ASSIGNMENT = "^([a-zA-Z_][a-zA-Z0-9_]*)\\.([a-zA-Z_][a-zA-Z0-9_]*)\\s*:=\\s*(.*);$";
+    private static final String OBJECT_INSTANCE = "^([A-Za-z_][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*;$";
+    private static final String COORDS_GRAMMAR = "\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\)";
+    private static final String DOUBLE_GRAMMAR = "^Mach\\s*\\((\\d+),\\s*(\\d+)\\)$";
     private static final String PRINT_GRAMMAR = "^print\\((.*)\\);$";
 
     private static boolean inObjectCreation = false;
@@ -34,14 +31,12 @@ public class Main {
         processInput(input.toString());
     }
 
-    // Process input for both single-line statements and object creation
     public static void processInput(String code) {
         String[] lines = code.split("\\n");
 
         for (String line : lines) {
             line = line.trim();
 
-            // Handle object creation
             if (line.matches(OBJECT_CREATION)) {
                 handleObjectCreation(line);
             } else if (inObjectCreation && line.matches(OBJECT_FIELD)) {
@@ -49,45 +44,61 @@ public class Main {
             } else if (line.matches(OBJECT_CLOSE)) {
                 handleObjectClose();
             } else {
-                // Handle single-line statements (coords, double, print)
                 handleSingleLineStatements(line);
             }
         }
     }
 
-    // Method to handle object creation
     private static void handleObjectCreation(String line) {
         String[] parts = line.split("\\s+");
         currentObjectName = parts[1];
         inObjectCreation = true;
-        objectMap.put(currentObjectName, new HashMap<>());
+        objectMap.put(currentObjectName, new CustomObject());
         System.out.println("Valid object creation: " + currentObjectName);
     }
 
-    // Method to handle fields inside an object
     private static void handleObjectField(String line) {
         String[] parts = line.split("\\s+");
         String fieldType = parts[0];
         String fieldName = parts[1].replace(";", "");
 
-        // Add fields to the object
-        objectMap.get(currentObjectName).put(fieldName, null); // Store field without a value yet
+        objectMap.get(currentObjectName).addField(fieldName, null);
         System.out.println("Field added: " + fieldName + " of type " + fieldType);
     }
 
-    // Method to close object creation
     private static void handleObjectClose() {
         inObjectCreation = false;
         currentObjectName = "";
         System.out.println("Object creation completed.");
     }
 
-    // Method to handle single-line inputs (coords, double, print)
+    private static void handleObjectInstance(String line) {
+        Matcher matcher = Pattern.compile(OBJECT_INSTANCE).matcher(line);
+        if (matcher.matches()) {
+            String objectType = matcher.group(1);
+            String objectName = matcher.group(2);
+
+            if (objectMap.containsKey(objectType)) {
+                CustomObject newInstance = new CustomObject();
+                CustomObject objectTemplate = objectMap.get(objectType);
+                for (String field : objectTemplate.fields.keySet()) {
+                    newInstance.addField(field, null);
+                }
+                objectInstanceMap.put(objectName, newInstance);
+                System.out.println("Object instance created: " + objectName + " of type " + objectType);
+            } else {
+                System.out.println("Error: Object type " + objectType + " not found.");
+            }
+        } else {
+            System.out.println("Error: Invalid syntax -> " + line);
+        }
+    }
+
     private static void handleSingleLineStatements(String line) {
-        if (line.matches(COORDS_GRAMMAR)) {
-            coordsSyntax(line);
-        } else if (line.matches(DOUBLE_GRAMMAR)) {
-            doubleSyntax(line);
+        if (line.matches(OBJECT_INSTANCE)) {
+            handleObjectInstance(line);
+        } else if (line.matches(OBJECT_ASSIGNMENT)) {
+            handleObjectAssignment(line);
         } else if (line.matches(PRINT_GRAMMAR)) {
             printSyntax(line);
         } else {
@@ -95,66 +106,72 @@ public class Main {
         }
     }
 
-    // Method to handle coords syntax
-    public static void coordsSyntax(String code) {
-        Matcher matcher = Pattern.compile(COORDS_GRAMMAR).matcher(code);
+    private static void handleObjectAssignment(String line) {
+        Matcher matcher = Pattern.compile(OBJECT_ASSIGNMENT).matcher(line);
         if (matcher.matches()) {
-            String identifier = matcher.group(1);
-            double latitude = Double.parseDouble(matcher.group(2));
-            double longitude = Double.parseDouble(matcher.group(3));
-            long altitude = Long.parseLong(matcher.group(4));
+            String objectName = matcher.group(1);
+            String fieldName = matcher.group(2);
+            String value = matcher.group(3);
 
-            // Store coords in the map
-            coordsMap.put(identifier, new Coords(latitude, longitude, altitude));
-            System.out.println("Stored coordinates: " + coordsMap.get(identifier));
-        } else {
-            System.out.println("Error: Invalid coords declaration.");
+            if (objectInstanceMap.containsKey(objectName)) {
+                CustomObject obj = objectInstanceMap.get(objectName);
+
+                if (value.matches(COORDS_GRAMMAR)) {
+                    Matcher coordsMatcher = Pattern.compile(COORDS_GRAMMAR).matcher(value);
+                    if (coordsMatcher.matches()) {
+                        double latitude = Double.parseDouble(coordsMatcher.group(1));
+                        double longitude = Double.parseDouble(coordsMatcher.group(2));
+                        long altitude = Long.parseLong(coordsMatcher.group(3));
+                        obj.setFieldValue(fieldName, new Coords(latitude, longitude, altitude));
+                        System.out.println("Assigned coords to " + objectName + "." + fieldName);
+                    }
+                } else if (value.matches(DOUBLE_GRAMMAR)) {
+                    Matcher doubleMatcher = Pattern.compile(DOUBLE_GRAMMAR).matcher(value);
+                    if (doubleMatcher.matches()) {
+                        double value1 = Double.parseDouble(doubleMatcher.group(1));
+                        double value2 = Double.parseDouble(doubleMatcher.group(2));
+                        double result = Mach(value1, value2);
+                        obj.setFieldValue(fieldName, result);
+                        System.out.println("Assigned Mach result to " + objectName + "." + fieldName);
+                    }
+                } else {
+                    System.out.println("Error: Invalid assignment value -> " + value);
+                }
+            } else {
+                System.out.println("Error: Object " + objectName + " not found.");
+            }
         }
     }
 
-    // Method to handle double syntax (with Mach function)
-    public static void doubleSyntax(String code) {
-        Matcher matcher = Pattern.compile(DOUBLE_GRAMMAR).matcher(code);
-        if (matcher.matches()) {
-            String identifier = matcher.group(1);
-            double value1 = Double.parseDouble(matcher.group(2));
-            double value2 = Double.parseDouble(matcher.group(3));
-            double result = Mach(value1, value2);
-
-            // Store result in the double map
-            doubleMap.put(identifier, result);
-            System.out.println("Stored double value: " + identifier + " = " + result);
-        } else {
-            System.out.println("Error: Invalid double syntax.");
-        }
-    }
-
-    // Method to handle print statements
-    public static void printSyntax(String code) {
+    private static void printSyntax(String code) {
         Matcher matcher = Pattern.compile(PRINT_GRAMMAR).matcher(code);
         if (matcher.matches()) {
             String expression = matcher.group(1);
 
-            // Check if printing a variable (coords or double)
-            if (coordsMap.containsKey(expression)) {
-                System.out.println("Coords value for " + expression + ": " + coordsMap.get(expression));
-            } else if (doubleMap.containsKey(expression)) {
-                System.out.println("Double value for " + expression + ": " + doubleMap.get(expression));
+            if (expression.contains(".")) {
+                String[] parts = expression.split("\\.");
+                String objectName = parts[0];
+                String fieldName = parts[1];
+
+                if (objectInstanceMap.containsKey(objectName)) {
+                    CustomObject obj = objectInstanceMap.get(objectName);
+                    System.out.println("Field value for " + expression + ": " + obj.getField(fieldName));
+                } else {
+                    System.out.println("Error: Object " + objectName + " not found.");
+                }
             } else {
-                System.out.println(expression); // Regular print statement
+                System.out.println(expression);
             }
         } else {
             System.out.println("Error: Invalid print statement.");
         }
     }
 
-    // Helper method to calculate Mach function
     public static double Mach(double value1, double value2) {
         return value1 / value2;
     }
 }
 
-// Simple Coords class to hold coordinate data
 class Coords {
     private double latitude;
     private double longitude;
@@ -169,5 +186,21 @@ class Coords {
     @Override
     public String toString() {
         return "Coords{" + "latitude=" + latitude + ", longitude=" + longitude + ", altitude=" + altitude + '}';
+    }
+}
+
+class CustomObject {
+    public Map<String, Object> fields = new HashMap<>();
+
+    public void addField(String fieldName, Object value) {
+        fields.put(fieldName, value);
+    }
+
+    public void setFieldValue(String fieldName, Object value) {
+        fields.put(fieldName, value);
+    }
+
+    public Object getField(String fieldName) {
+        return fields.get(fieldName);
     }
 }
