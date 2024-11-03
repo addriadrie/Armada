@@ -6,26 +6,18 @@ import java.util.regex.*;
 public class Main {
 
     // Data structures to store objects, fields, coords, double values, and status
-    private static Map<String, Map<String, Object>> objectMap = new HashMap<>();
     private static Map<String, Double> doubleMap = new HashMap<>();
     private static Map<String, Coords> coordsMap = new HashMap<>();
     private static Map<String, String> statusMap = new HashMap<>(); // Store status values
 
-    // Regex patterns for different types
-    private static final String OBJECT_CREATION = "^create\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*$";
-    private static final String OBJECT_FIELD = "^(coords|double|status)\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*;$";
-    private static final String OBJECT_CLOSE = "^}\\s*$";
 
     private static final String COORDS_GRAMMAR = "coords\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\);";
     private static final String DOUBLE_GRAMMAR = "^double\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*Mach\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+)\\);$";
     private static final String PRINT_GRAMMAR = "^print\\((.*)\\);$";
     private static final String STATUS_DECLARATION_GRAMMAR = "^status\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*;$";
     private static final String STATUS_ASSIGNMENT_GRAMMAR = "^([A-Za-z_][A-Za-z0-9_]*)\\s*:=\\s*\"(Landed|Airborne|Boarding)\";$";
-    private static final Pattern CASE_PATTERN = Pattern.compile("^case\\s*\\((.*)\\)\\s*\\{");
-
-    private static boolean inObjectCreation = false;
-    private static String currentObjectName = "";
-
+    
+    
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         StringBuilder inputBuilder = new StringBuilder();
@@ -48,11 +40,11 @@ public class Main {
     // Process input for both single-line statements and object creation
     public static void processInput(String code) {
         String[] lines = code.split("\\n");
-
+        
         for (String line : lines) {
             line = line.trim();
-                // Handle single-line statements (coords, double, status, print)
-                handleSingleLineStatements(line);
+            // Handle single-line statements (coords, double, status, print)
+            handleSingleLineStatements(line);
         }
     }
 
@@ -68,8 +60,6 @@ public class Main {
             statusAssignmentSyntax(line);
         } else if (line.matches(PRINT_GRAMMAR)) {
             printSyntax(line);
-        } else if (line.startsWith("case ")) {
-            checkCaseStatement(line);
         } else {
             System.out.println("Error: Invalid syntax -> " + line);
         }
@@ -135,7 +125,7 @@ public class Main {
                 statusMap.put(identifier, statusValue);
                 System.out.println(identifier + " of type status is set to " + statusValue + ".");
             } else {
-                System.out.println("Error: Variable '" + identifier + "' not declared.");
+                System.out.println("Error: Status identifier " + identifier + " has not been declared.");
             }
         } else {
             System.out.println("Error: Invalid status assignment.");
@@ -166,25 +156,13 @@ public class Main {
         }
     }
 
-    // Method to check case statements
-    private static void checkCaseStatement(String line) {
-        Matcher matcher = CASE_PATTERN.matcher(line);
-        if (matcher.find()) {
-            String condition = matcher.group(1).trim();
-            // Additional logic can be implemented here to evaluate conditions.
-            System.out.println("Valid case statement: " + line);
-        } else {
-            System.out.println("Invalid case statement: " + line);
-        }
-    }
-
     // Helper method to calculate Mach function
     public static double Mach(double value1, double value2) {
         return value1 / value2;
     }
 }
 
-// Simple Coords class to hold coordinate data
+// Coords class to hold coordinate data
 class Coords {
     private double latitude;
     private double longitude;
