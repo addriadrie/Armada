@@ -126,8 +126,13 @@ public class IfCFG {
             int braceCount = 1; // We found one opening brace
             int caseLineIndex = Arrays.asList(lines).indexOf(line); // Get the line index
 
+            // Start collecting lines inside the case block
+            List<String> caseBlockLines = new ArrayList<>();
+
             for (int i = caseLineIndex + 1; i < lines.length; i++) {
                 String currentLine = lines[i].trim();
+                caseBlockLines.add(currentLine);
+
                 if (currentLine.contains("{")) {
                     braceCount++;
                 }
@@ -135,8 +140,9 @@ public class IfCFG {
                     braceCount--;
                 }
                 if (braceCount == 0) {
-                    // We've found a matching closing brace
+                    //Found a matching closing brace
                     System.out.println("Valid case statement: " + line);
+                    processCaseBlock(caseBlockLines); // Process the lines inside the case block
                     return;
                 }
             }
@@ -146,6 +152,28 @@ public class IfCFG {
             System.out.println("Invalid case statement: " + line);
         }
     }
+    
+    private static void processCaseBlock(List<String> caseBlockLines) {
+        for (String blockLine : caseBlockLines) {
+            blockLine = blockLine.trim();
+
+            if (blockLine.startsWith("//")) {
+                // Ignore comments
+                continue;
+            }
+
+            // Here you can check for other valid statements like print or status assignments
+            if (blockLine.startsWith("print(")) {
+                checkPrintStatement(blockLine);
+            } else if (blockLine.matches(STATUS_ASSIGNMENT_GRAMMAR)) {
+                statusAssignmentSyntax(blockLine);
+            } else if (!blockLine.equals("{") && !blockLine.equals("}")) {
+                System.out.println("Error: Unrecognized statement inside case block: " + blockLine);
+            }
+        }
+    }
+
+
 
     // Method to validate compound conditions
     private static boolean isValidCompoundCondition(String condition) {
