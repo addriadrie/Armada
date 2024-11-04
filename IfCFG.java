@@ -9,7 +9,6 @@ public class IfCFG {
     private static Map<String, String> statusMap = new HashMap<>(); // Store status values
     private static Map<String, Coords> coordsMap = new HashMap<>();
 
-
     // Define the pattern for identifying coords
     private static final String COORDS_GRAMMAR = "coords\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\);";
 
@@ -20,6 +19,10 @@ public class IfCFG {
     private static final String STATUS_DECLARATION_GRAMMAR = "^status\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*;$";
     private static final String STATUS_ASSIGNMENT_GRAMMAR = "^([A-Za-z_][A-Za-z0-9_]*)\\s*:=\\s*\"(Landed|Airborne|Boarding)\";$";
     
+    // Define the pattern for valid conditions
+    private static final String CONDITION_PATTERN = "^(\\w+)\\s*(==|!=|>|<|>=|<=)\\s*(\\w+)$";
+    private static final String LOGICAL_OPERATOR_PATTERN = "\\s*(&&|\\|\\|)\\s*"; // Pattern for logical operators
+
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -47,9 +50,9 @@ public class IfCFG {
             line = line.trim();
 
             if (line.startsWith("status ")) {
-            	statusDeclarationSyntax(line);
+                statusDeclarationSyntax(line);
             } else if (line.startsWith("coords ")) {
-            	coordsSyntax(line);
+                coordsSyntax(line);
             } else if (line.startsWith("case ")) {
                 checkCaseStatement(lines, line);
             } else if (line.startsWith("print(")) {
@@ -107,11 +110,18 @@ public class IfCFG {
             System.out.println("Error: Invalid coords declaration.");
         }
     }
-
+    
     private static void checkCaseStatement(String[] lines, String line) {
         Matcher matcher = CASE_PATTERN.matcher(line);
         if (matcher.find()) {
             String condition = matcher.group(1).trim();
+
+            // Check if the condition is valid
+            if (!isValidCompoundCondition(condition)) {
+                System.out.println("Invalid case statement (invalid condition): " + line);
+                return;
+            }
+
             // Now we need to check for the corresponding closing brace
             int braceCount = 1; // We found one opening brace
             int caseLineIndex = Arrays.asList(lines).indexOf(line); // Get the line index
@@ -126,11 +136,7 @@ public class IfCFG {
                 }
                 if (braceCount == 0) {
                     // We've found a matching closing brace
-                    if (!condition.isEmpty()) {
-                        System.out.println("Valid case statement: " + line);
-                    } else {
-                        System.out.println("Invalid case statement (empty condition): " + line);
-                    }
+                    System.out.println("Valid case statement: " + line);
                     return;
                 }
             }
@@ -140,6 +146,46 @@ public class IfCFG {
             System.out.println("Invalid case statement: " + line);
         }
     }
+
+    // Method to validate compound conditions
+    private static boolean isValidCompoundCondition(String condition) {
+        String[] subconditions = condition.split(LOGICAL_OPERATOR_PATTERN);
+
+        for (String subcondition : subconditions) {
+            if (!isValidCondition(subcondition.trim())) {
+                return false; // If any subcondition is invalid, return false
+            }
+        }
+        return true; // All subconditions are valid
+    }
+
+    // Method to validate simple conditions
+    private static boolean isValidCondition(String condition) {
+        String trimmedCondition = condition.trim();
+        Matcher matcher = Pattern.compile(CONDITION_PATTERN).matcher(trimmedCondition);
+        
+        if (matcher.matches()) {
+            // Check if there is a valid comparison value
+            String leftOperand = matcher.group(1);
+            String operator = matcher.group(2);
+            String rightOperand = matcher.group(3);
+            
+            // Ensure the right operand is not empty and is a valid identifier or constant
+            if (rightOperand.isEmpty() || !isValidOperand(rightOperand)) {
+                System.out.println("Error: Missing or invalid comparison value in condition: " + trimmedCondition);
+                return false;
+            }
+            
+            return true;
+        }
+        return false; // The condition did not match the expected format
+    }
+
+    // Method to check if an operand is valid (could be a variable or a constant)
+    private static boolean isValidOperand(String operand) {
+        return operand.matches("[a-zA-Z_][A-Za-z0-9_]*|\\d+(\\.\\d+)?"); // Allow identifiers or numeric values
+    }
+
 
     private static void checkPrintStatement(String line) {
         if (line.matches("^print\\(\\w+\\);$")) {
