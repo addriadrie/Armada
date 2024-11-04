@@ -1,4 +1,5 @@
 package armadaCFG;
+
 import java.util.*;
 import java.util.regex.*;
 
@@ -7,13 +8,14 @@ public class ObjectCFG {
     private static Map<String, CustomObject> objectMap = new HashMap<>();
     private static Map<String, CustomObject> objectInstanceMap = new HashMap<>();
     private static final String OBJECT_CREATION = "^create\\s+[A-Za-z_][A-Za-z0-9_]*\\s*\\{\\s*$";
-    private static final String OBJECT_FIELD = "^(coords|double)\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*;$";
+    private static final String OBJECT_FIELD = "^(coords|double|string|status)\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*;$";
     private static final String OBJECT_CLOSE = "^}\\s*$";
     private static final String OBJECT_ASSIGNMENT = "^([a-zA-Z_][a-zA-Z0-9_]*)\\.([a-zA-Z_][a-zA-Z0-9_]*)\\s*:=\\s*(.*);$";
     private static final String OBJECT_INSTANCE = "^([A-Za-z_][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*;$";
     private static final String COORDS_GRAMMAR = "\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\)";
-    private static final String DOUBLE_GRAMMAR = "^Mach\\s*\\((\\d+),\\s*(\\d+)\\)$";
-    private static final String PRINT_GRAMMAR = "^print\\((.*)\\);$";
+    private static final String DOUBLE_GRAMMAR = "^Mach\\s*\\(([-+]?\\d*\\.\\d+),\\s*([-+]?\\d*\\.\\d+)\\)$";
+    private static final String PRINT_GRAMMAR = "^print\\(([a-zA-Z_][a-zA-Z0-9_]*\\.[a-zA-Z_][a-zA-Z0-9_]*)\\);$";
+    private static final String STATUS_GRAMMAR = "^\"(Landed|Airborne|Boarding)\"$";
 
     private static boolean inObjectCreation = false;
     private static String currentObjectName = "";
@@ -88,7 +90,7 @@ public class ObjectCFG {
                 CustomObject newInstance = new CustomObject();
                 CustomObject objectTemplate = objectMap.get(objectType);
                 for (String field : objectTemplate.fields.keySet()) {
-                    newInstance.addField(field, null);
+                    newInstance.addField(field, null); // Initialize field with null
                 }
                 objectInstanceMap.put(objectName, newInstance);
                 System.out.println("Object instance created: " + objectName + " of type " + objectType);
@@ -117,10 +119,15 @@ public class ObjectCFG {
         if (matcher.matches()) {
             String objectName = matcher.group(1);
             String fieldName = matcher.group(2);
-            String value = matcher.group(3);
+            String value = matcher.group(3).trim(); // Trim any whitespace
 
             if (objectInstanceMap.containsKey(objectName)) {
                 CustomObject obj = objectInstanceMap.get(objectName);
+
+                if (!obj.fields.containsKey(fieldName)) {
+                    System.out.println("Error: Field " + fieldName + " does not exist in " + objectName + ".");
+                    return; // Exit if field doesn't exist
+                }
 
                 if (value.matches(COORDS_GRAMMAR)) {
                     Matcher coordsMatcher = Pattern.compile(COORDS_GRAMMAR).matcher(value);
@@ -128,7 +135,7 @@ public class ObjectCFG {
                         double latitude = Double.parseDouble(coordsMatcher.group(1));
                         double longitude = Double.parseDouble(coordsMatcher.group(2));
                         long altitude = Long.parseLong(coordsMatcher.group(3));
-                        obj.setFieldValue(fieldName, new Coords(latitude, longitude, altitude));
+                        obj.setFieldValue(fieldName, new CoordsObj(latitude, longitude, altitude));
                         System.out.println("Assigned coords to " + objectName + "." + fieldName);
                     }
                 } else if (value.matches(DOUBLE_GRAMMAR)) {
@@ -140,6 +147,12 @@ public class ObjectCFG {
                         obj.setFieldValue(fieldName, result);
                         System.out.println("Assigned Mach result to " + objectName + "." + fieldName);
                     }
+                } else if (value.matches(STATUS_GRAMMAR)) {
+                    obj.setFieldValue(fieldName, value.replace("\"", ""));
+                    System.out.println("Assigned status to " + objectName + "." + fieldName);
+                } else if (fieldName.equals("name") && value.matches("\"[^\"]*\"")) {
+                    obj.setFieldValue(fieldName, value.replace("\"", ""));
+                    System.out.println("Assigned string to " + objectName + "." + fieldName);
                 } else {
                     System.out.println("Error: Invalid assignment value -> " + value);
                 }
@@ -152,7 +165,7 @@ public class ObjectCFG {
     private static void printSyntax(String code) {
         Matcher matcher = Pattern.compile(PRINT_GRAMMAR).matcher(code);
         if (matcher.matches()) {
-            String expression = matcher.group(1);
+            String expression = matcher.group(1); // Get the object.field expression
 
             if (expression.contains(".")) {
                 String[] parts = expression.split("\\.");
@@ -161,23 +174,28 @@ public class ObjectCFG {
 
                 if (objectInstanceMap.containsKey(objectName)) {
                     CustomObject obj = objectInstanceMap.get(objectName);
-                    System.out.println("Field value for " + expression + ": " + obj.getField(fieldName));
+                    Object fieldValue = obj.getField(fieldName);
+
+                    // Print the field value
+                    System.out.println("Field value for " + expression + ": " + (fieldValue != null ? fieldValue : "null"));
                 } else {
                     System.out.println("Error: Object " + objectName + " not found.");
                 }
             } else {
-                System.out.println(expression);
+                System.out.println("Error: Invalid expression for print -> " + expression);
             }
         } else {
-            System.out.println("Error: Invalid print statement.");
+            System.out.println("Error: Invalid syntax -> " + code);
         }
     }
 
-    public static double Mach(double value1, double value2) {
-        return value1 / value2;
+    // Mach calculation method
+    public static double Mach(double speed, double machFactor) {
+        return speed * machFactor;
     }
 }
 
+// Support classes
 class CoordsObj {
     private double latitude;
     private double longitude;
@@ -191,7 +209,7 @@ class CoordsObj {
 
     @Override
     public String toString() {
-        return "Coords{" + "latitude=" + latitude + ", longitude=" + longitude + ", altitude=" + altitude + '}';
+        return "Coordinates (latitude=" + latitude + ", longitude=" + longitude + ", altitude=" + altitude + ")";
     }
 }
 
