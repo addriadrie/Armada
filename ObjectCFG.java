@@ -55,7 +55,13 @@ public class ObjectCFG {
                 handleSingleLineStatements(line);
             }
         }
+
+        // Check if object creation was incomplete (no closing brace found)
+        if (inObjectCreation) {
+            System.out.println("Error: Object creation incomplete, missing closing brace.");
+        }
     }
+
 
     private static void handleObjectCreation(String line) {
         String[] parts = line.split("\\s+");
@@ -147,9 +153,13 @@ public class ObjectCFG {
                         obj.setFieldValue(fieldName, result);
                         System.out.println("Assigned Mach result to " + objectName + "." + fieldName);
                     }
-                } else if (value.matches(STATUS_GRAMMAR)) {
-                    obj.setFieldValue(fieldName, value.replace("\"", ""));
-                    System.out.println("Assigned status to " + objectName + "." + fieldName);
+                } else if (fieldName.equals("flightStatus")) {
+                    if (value.matches(STATUS_GRAMMAR)) {
+                        obj.setFieldValue(fieldName, value.replace("\"", ""));
+                        System.out.println("Assigned status to " + objectName + "." + fieldName);
+                    } else {
+                        System.out.println("Error: Invalid status -> " + value + ". Valid statuses are 'Landed', 'Airborne', and 'Boarding'.");
+                    }
                 } else if (fieldName.equals("name") && value.matches("\"[^\"]*\"")) {
                     obj.setFieldValue(fieldName, value.replace("\"", ""));
                     System.out.println("Assigned string to " + objectName + "." + fieldName);
