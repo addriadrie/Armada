@@ -122,11 +122,11 @@ public class IfCFG {
                 return;
             }
 
-            // Now we need to check for the corresponding closing brace
-            int braceCount = 1; // We found one opening brace
+            // Check for the corresponding closing brace
+            int braceCount = 1; //Found one opening brace
             int caseLineIndex = Arrays.asList(lines).indexOf(line); // Get the line index
 
-            // Start collecting lines inside the case block
+            // Collecting lines inside the case block
             List<String> caseBlockLines = new ArrayList<>();
 
             for (int i = caseLineIndex + 1; i < lines.length; i++) {
@@ -146,7 +146,7 @@ public class IfCFG {
                     return;
                 }
             }
-            // If we exit the loop without finding a matching closing brace
+            // If no matching closing brace
             System.out.println("Invalid case statement (missing closing brace): " + line);
         } else {
             System.out.println("Invalid case statement: " + line);
@@ -162,7 +162,7 @@ public class IfCFG {
                 continue;
             }
 
-            // Here you can check for other valid statements like print or status assignments
+            // to check statements
             if (blockLine.startsWith("print(")) {
                 checkPrintStatement(blockLine);
             } else if (blockLine.matches(STATUS_ASSIGNMENT_GRAMMAR)) {
