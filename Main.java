@@ -12,7 +12,7 @@ public class Main {
 
     // Grammar patterns
     private static final String COORDS_GRAMMAR = "coords\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*\\((.*?)\\)\\s*;";
-    private static final String DOUBLE_GRAMMAR = "^double\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*Mach\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+)\\);$";
+    private static final String DOUBLE_GRAMMAR = "^double\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*Mach\\((.*?)\\);$";
     private static final String PRINT_GRAMMAR = "^print\\((.*)\\);$";
     private static final String STATUS_DECLARATION_GRAMMAR = "^status\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*;$";
     private static final String STATUS_ASSIGNMENT_GRAMMAR = "^([A-Za-z_][A-Za-z0-9_]*)\\s*:=\\s*\"(Landed|Airborne|Boarding)\";$";
@@ -100,13 +100,26 @@ public class Main {
         Matcher matcher = Pattern.compile(DOUBLE_GRAMMAR).matcher(code);
         if (matcher.matches()) {
             String identifier = matcher.group(1);
-            double value1 = Double.parseDouble(matcher.group(2));
-            double value2 = Double.parseDouble(matcher.group(3));
-            double result = Mach(value1, value2);
+            String values = matcher.group(2).trim();
 
-            // Store result in the double map
-            doubleMap.put(identifier, result);
-            System.out.println(identifier + " is equal to " + result);
+            // Split the values by comma and trim whitespace
+            String[] valueArgs = values.split(",");
+            if (valueArgs.length != 2) {
+                System.out.println("Error: Missing values for Mach. It must be (double value1, double value2).");
+                return;
+            }
+
+            try {
+                double value1 = Double.parseDouble(valueArgs[0].trim());
+                double value2 = Double.parseDouble(valueArgs[1].trim());
+                double result = Mach(value1, value2);
+
+                // Store result in the double map
+                doubleMap.put(identifier, result);
+                System.out.println(identifier + " is equal to " + result);
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Mach only accepts double data types for its parameters.");
+            }
         } else {
             System.out.println("Error: Invalid double syntax. Ensure 'Mach' function is used correctly.");
         }
