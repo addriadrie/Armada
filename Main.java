@@ -10,20 +10,19 @@ public class Main {
     private static Map<String, Coords> coordsMap = new HashMap<>();
     private static Map<String, String> statusMap = new HashMap<>(); // Store status values
 
-
-    private static final String COORDS_GRAMMAR = "coords\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*(\\d+)\\);";
+    // Grammar patterns
+    private static final String COORDS_GRAMMAR = "coords\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*\\((.*?)\\)\\s*;";
     private static final String DOUBLE_GRAMMAR = "^double\\s+([a-zA-Z_][A-Za-z0-9_]*)\\s*:=\\s*Mach\\(([-+]?\\d*\\.\\d+|[-+]?\\d+),\\s*([-+]?\\d*\\.\\d+)\\);$";
     private static final String PRINT_GRAMMAR = "^print\\((.*)\\);$";
     private static final String STATUS_DECLARATION_GRAMMAR = "^status\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*;$";
     private static final String STATUS_ASSIGNMENT_GRAMMAR = "^([A-Za-z_][A-Za-z0-9_]*)\\s*:=\\s*\"(Landed|Airborne|Boarding)\";$";
-    
-    
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         StringBuilder inputBuilder = new StringBuilder();
-        
+
         System.out.println("Enter your code (type 'END' on a new line to finish):");
-        
+
         // Read lines until 'END' is entered
         while (true) {
             String line = sc.nextLine();
@@ -32,7 +31,7 @@ public class Main {
             }
             inputBuilder.append(line).append("\n");
         }
-        
+
         String input = inputBuilder.toString();
         processInput(input);
     }
@@ -40,7 +39,7 @@ public class Main {
     // Process input for both single-line statements and object creation
     public static void processInput(String code) {
         String[] lines = code.split("\\n");
-        
+
         for (String line : lines) {
             line = line.trim();
             // Handle single-line statements (coords, double, status, print)
@@ -62,6 +61,7 @@ public class Main {
             printSyntax(line);
         } else {
             System.out.println("Error: Invalid syntax -> " + line);
+            System.out.println("Check for missing or misplaced semi-colons and correct variable names.");
         }
     }
 
@@ -70,15 +70,28 @@ public class Main {
         Matcher matcher = Pattern.compile(COORDS_GRAMMAR).matcher(code);
         if (matcher.matches()) {
             String identifier = matcher.group(1);
-            double latitude = Double.parseDouble(matcher.group(2));
-            double longitude = Double.parseDouble(matcher.group(3));
-            long altitude = Long.parseLong(matcher.group(4));
+            String values = matcher.group(2).trim();
 
-            // Store coords in the map
-            coordsMap.put(identifier, new Coords(latitude, longitude, altitude));
-            System.out.println(identifier + " of type coordinates is set to " + coordsMap.get(identifier));
+            // Split the values by comma and trim whitespace
+            String[] coordsValues = values.split(",");
+            if (coordsValues.length != 3) {
+                System.out.println("Error: Missing value. It must be (double latitude, double longitude, long altitude).");
+                return;
+            }
+
+            try {
+                double latitude = Double.parseDouble(coordsValues[0].trim());
+                double longitude = Double.parseDouble(coordsValues[1].trim());
+                long altitude = Long.parseLong(coordsValues[2].trim());
+
+                // Store coords in the map
+                coordsMap.put(identifier, new Coords(latitude, longitude, altitude));
+                System.out.println(identifier + " of type coordinates is set to " + coordsMap.get(identifier));
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Wrong number format. It must be (double latitude, double longitude, long altitude).");
+            }
         } else {
-            System.out.println("Error: Invalid coords declaration.");
+            System.out.println("Error: Invalid coords declaration. Ensure the format is correct and contains a valid identifier.");
         }
     }
 
@@ -95,7 +108,7 @@ public class Main {
             doubleMap.put(identifier, result);
             System.out.println(identifier + " is equal to " + result);
         } else {
-            System.out.println("Error: Invalid double syntax.");
+            System.out.println("Error: Invalid double syntax. Ensure 'Mach' function is used correctly.");
         }
     }
 
@@ -108,7 +121,7 @@ public class Main {
             statusMap.put(identifier, null);
             System.out.println("Data type declared " + identifier + " of type status.");
         } else {
-            System.out.println("Error: Invalid status declaration.");
+            System.out.println("Error: Invalid status declaration. Check for missing semi-colon or incorrect identifier.");
         }
     }
 
@@ -125,10 +138,10 @@ public class Main {
                 statusMap.put(identifier, statusValue);
                 System.out.println(identifier + " of type status is set to " + statusValue + ".");
             } else {
-                System.out.println("Error: Status identifier " + identifier + " has not been declared.");
+                System.out.println("Error: Status identifier " + identifier + " has not been declared. Declare it before assignment.");
             }
         } else {
-            System.out.println("Error: Invalid status assignment.");
+            System.out.println("Error: Invalid status assignment. Ensure the assignment format is correct.");
         }
     }
 
@@ -149,10 +162,10 @@ public class Main {
                 // If it's a string literal, print the string without quotes
                 System.out.println(expression.substring(1, expression.length() - 1));
             } else {
-                System.out.println("Error: Identifier '" + expression + "' not found.");
+                System.out.println("Error: Identifier '" + expression + "' not found. Check variable declarations.");
             }
         } else {
-            System.out.println("Error: Invalid print statement.");
+            System.out.println("Error: Invalid print statement. Ensure it follows the format print(expression);");
         }
     }
 
