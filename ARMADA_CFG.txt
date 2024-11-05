@@ -1,0 +1,151 @@
+SYNTAX CHECKER CFG DEFINITION:
+<Main> → <coords-type> | <mach-expression> | <print-function>
+<IfCFG> → <case-conditional>
+<ObjectCFG> → <create-declaration>
+
+1. VARIABLE DECLARATION
+1.1. Coords
+
+<coords-type> → <type> <identifier> <assign-operator> <open-separator><double-value><value-separator><double-value><value-separator><long-value><close-separator><terminator>
+
+<type> → "coords”
+
+<identifier> → <string>
+<string> → <char> | <char><string>
+<char> → <letter> | <digit> | “-”
+<letter> → <lowercase> | <uppercase>
+<lowercase> → "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+<uppercase> → "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<assign-operator> → “:=”
+
+<open-separator> → "("
+<close-separator> → ")"
+
+<value-separator> → ","
+
+<double-value> → [±]<digits> | [±]<digits><point-separator><digits>
+
+<point-separator> → "."
+
+<long-value> → <digits>
+
+<digits> → <digit> | <digit> <digits>
+
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<terminator> → ";"
+
+
+2. EXPRESSIONS
+2.1 Mach 
+
+<mach-expression> → <data-type> <identifier> <assign-operator> <keyword><open-separator><double-value><value-separator><double-value><close-separator><terminator>
+
+<data-type> → “double”
+
+<identifier> → <string>
+<string> → <char> | <char><string>
+<char> → <letter> | <digit> | “-”
+<letter> → <lowercase> | <uppercase>
+<lowercase> → "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+<uppercase> → "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<assign-operator> → “:=”
+
+<keyword> → “Mach”
+
+<open-separator> → “(“
+<close-separator> → “)”
+
+<value-separator> → “,”
+
+<double-value> → [±]<digits> | [±]<digits><point-separator><digits>
+<digits> → <digit> | <digit> <digit>
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<terminator> → ";"
+
+
+3. FUNCTION
+3.1. Print
+
+<print-function> → <keyword><open-separator><print-stmt><close-separator><terminator>
+
+<print-stmt> → <print-string> | <print-identifier>
+
+<print-string> → <quote-separator><string><quote-separator>
+
+<print-identifier> → <string>
+
+<keyword> → “print”
+
+<open-separator> → “(“
+<close-separator> → “)”
+
+<string> → <char> | <char><string>
+<char> → <letter> | <digit> | “-”
+<letter> → <lowercase> | <uppercase>
+<lowercase> → "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+<uppercase> → "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<terminator> → ";"
+
+
+4. CONDITIONALS
+4.1. Case
+
+<case-conditional> → <keyword> <open-separator><conditions><close-separator><open-brace><statements><close-brace>
+	
+<keyword> → “create”
+
+<open-separator> → “(“
+<close-separator> → “)”
+
+<conditions> → <simple-condition> | <compound-condition>
+<simple-condition> → <identifier> <operator> <identifier>
+
+<compound-condition> → <simple-condition> ( <logical-operator> 
+<simple-condition> )*
+
+<operator> → "==" | "!=" | ">" | "<" | ">=" | "<="
+
+<logical-operator> → "&&" | "||"
+
+<identifier> → <string>
+<string> → <char> | <char><string>
+<char> → <letter> | <digit> | “-”
+<letter> → <lowercase> | <uppercase>
+<lowercase> → "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+<uppercase> → "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<terminator> → “;”
+
+
+5. OBJECTS
+5.1. Create
+
+<create-declaration> → <keyword> <identifier><open-brace><fields><close-brace>
+
+<keyword> → “create”
+
+<open-brace> → “{“
+<close-brace> → “}“
+<fields> → <field> | <field><fields>
+<field> → <data-type> <identifier><terminator>
+
+<data-type> → “string” | “coords” | “status”
+
+<identifier> → <string>
+<string> → <char> | <char><string>
+<char> → <letter> | <digit> | “-”
+<letter> → <lowercase> | <uppercase>
+<lowercase> → "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+<uppercase> → "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> → "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<terminator> → “;”
